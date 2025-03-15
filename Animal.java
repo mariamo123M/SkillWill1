@@ -1,14 +1,26 @@
-public class Animal {
+
+class Animal {
+    String name;
+
+    public Animal( String name) {
+        this.name = name;
+    }
+    public void makeSound () {
+        System.out.println("sound");
+    }
+}
+class Horse extends Animal {
+    public Horse (String name) {
+        super(name);
+    }
+    public void makeSound(){
+        System.out.println(name  +  " says: iuhuu!");
+    }
+}
+ class Main {
     public static void main(String[] args) {
-        String animalName = "horse";
-        if (animalName.equals("horse")) {
-            System.out.println(" I am an animal");
-        } else if (animalName.equals("lion")) {
-            System.out.println("I am the lion");
-        } else if (animalName.equals("tiger")) {
-            System.out.println("I am an animal");
-        } else {
-            System.out.println("i am an animal");
-        }
+
+        Horse myHorse = new Horse("Prutu");
+        myHorse.makeSound();
     }
 }
