@@ -1,60 +1,105 @@
-//  Chef class (Handles cooking only)
-class Chef {
-    void cookFood() {
-        System.out.println(" Chef is preparing the food.");
-    }
+
+abstract class Payment {
+    abstract void processPayment();
 }
 
-//  Waiter class (Handles customer service)
-class Waiter {
-    void serveCustomer() {
-        System.out.println(" Waiter is serving the customer.");
-    }
-}
-
-//  Accountant class (Handles finances)
-class Accountant {
-    void manageFinances() {
-        System.out.println(" Accountant is managing the finances.");
-    }
-}
-
- class Restaurant {
-    public static void main(String[] args) {
-        Chef chef = new Chef();
-        Waiter waiter = new Waiter();
-        Accountant accountant = new Accountant();
-
-        chef.cookFood();
-        waiter.serveCustomer();
-        accountant.manageFinances();
-    }
-}//  Base class for social media platforms
-abstract class SocialMediaPlatform {
-    abstract void postContent();
-}
-
-//  Facebook (Basic functionality)
-class Facebook extends SocialMediaPlatform {
+class CashPayment extends Payment {
     @Override
-    void postContent() {
-        System.out.println(" Posting on Facebook...");
+    void processPayment() {
+        System.out.println(" Paying with cash.");
     }
 }
 
-// Instagram (New feature, but core remains unchanged)
-class Instagram extends SocialMediaPlatform {
+class CardPayment extends Payment {
     @Override
-    void postContent() {
-        System.out.println("Uploading a photo on Instagram.");
+    void processPayment() {
+        System.out.println(" Paying with credit card.");
     }
 }
-class SocialMediaDemo {
+ class PaymentDemo {
     public static void main(String[] args) {
-        SocialMediaPlatform facebook = new Facebook();
-        SocialMediaPlatform instagram = new Instagram();
+        Payment cash = new CashPayment();
+        Payment card = new CardPayment();
 
-        facebook.postContent();
-        instagram.postContent();
+        cash.processPayment();
+        card.processPayment();
     }
 }
+interface Developer {
+    void writeCode();
+}
+
+interface Designer {
+    void createDesign();
+}
+
+interface Marketer {
+    void promoteProduct();
+}
+
+class SoftwareDeveloper implements Developer {
+    @Override
+    public void writeCode() {
+        System.out.println(" Writing code.");
+    }
+}
+
+class GraphicDesigner implements Designer {
+    @Override
+    public void createDesign() {
+        System.out.println(" Creating graphic design.");
+    }
+}
+
+ class CompanyDemo {
+    public static void main(String[] args) {
+        Developer dev = new SoftwareDeveloper();
+        Designer designer = new GraphicDesigner();
+
+        dev.writeCode();
+        designer.createDesign();
+    }
+}
+interface NotificationSender {
+    void sendNotification();
+}
+
+class EmailSender implements NotificationSender {
+    @Override
+    public void sendNotification() {
+        System.out.println(" Sending email notification.");
+    }
+}
+
+class SmsSender implements NotificationSender {
+    @Override
+    public void sendNotification() {
+        System.out.println(" Sending SMS notification.");
+    }
+}
+
+
+class SocialNetwork {
+    private NotificationSender notification;
+
+    public SocialNetwork(NotificationSender notification) {
+        this.notification = notification;
+    }
+
+    void notifyUser() {
+        notification.sendNotification();
+    }
+}
+
+ class NotificationDemo {
+    public static void main(String[] args) {
+        SocialNetwork emailApp = new SocialNetwork(new EmailSender());
+        SocialNetwork smsApp = new SocialNetwork(new SmsSender());
+
+        emailApp.notifyUser();
+        smsApp.notifyUser();
+    }
+}
+1. მაგაითად გადახდის მეთოდები როდესაც მაღაზიაში შევდივართ არ უნდა იყოს მხოლოდ ერთი გადახდის მეთოდი ან მარტო ქეშით ან მარტო ფეიფალით, ნებისმიერ მომხმარებელზე უნდა იყოს მორგებული.
+2. კომპანიაში სადაც პროგრამისტები, დიზაინერები და მარკეტოლოგები მუშაობენ ერთმანეთის საქმიანობა არ უნდა დაევალოთ, ყველას ზუსტად უნდა ჰქონდეს თავისი ფუნქცია განსაზღვრული.
+3. სოციალურ ქსელში როდესაც ვაგზავნით შეტყობინებას ფეისბუქზე იმაილის სახით გაგზავნილი შეტყობინება ვერ იმუშავებს.
