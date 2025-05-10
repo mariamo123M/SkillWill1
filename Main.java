@@ -1,105 +1,82 @@
+package com.example.demo.controller;
 
-abstract class Payment {
-    abstract void processPayment();
-}
+import com.example.demo.model.User;
+import org.springframework.web.bind.annotation.*;
 
-class CashPayment extends Payment {
-    @Override
-    void processPayment() {
-        System.out.println(" Paying with cash.");
-    }
-}
+import java.util.ArrayList;
+import java.util.List;
 
-class CardPayment extends Payment {
-    @Override
-    void processPayment() {
-        System.out.println(" Paying with credit card.");
-    }
-}
- class PaymentDemo {
-    public static void main(String[] args) {
-        Payment cash = new CashPayment();
-        Payment card = new CardPayment();
+@RestController
+@RequestMapping("/users")
+public class UserController {
+    private final List<User> users = new ArrayList<>();
 
-        cash.processPayment();
-        card.processPayment();
-    }
-}
-interface Developer {
-    void writeCode();
-}
-
-interface Designer {
-    void createDesign();
-}
-
-interface Marketer {
-    void promoteProduct();
-}
-
-class SoftwareDeveloper implements Developer {
-    @Override
-    public void writeCode() {
-        System.out.println(" Writing code.");
-    }
-}
-
-class GraphicDesigner implements Designer {
-    @Override
-    public void createDesign() {
-        System.out.println(" Creating graphic design.");
-    }
-}
-
- class CompanyDemo {
-    public static void main(String[] args) {
-        Developer dev = new SoftwareDeveloper();
-        Designer designer = new GraphicDesigner();
-
-        dev.writeCode();
-        designer.createDesign();
-    }
-}
-interface NotificationSender {
-    void sendNotification();
-}
-
-class EmailSender implements NotificationSender {
-    @Override
-    public void sendNotification() {
-        System.out.println(" Sending email notification.");
-    }
-}
-
-class SmsSender implements NotificationSender {
-    @Override
-    public void sendNotification() {
-        System.out.println(" Sending SMS notification.");
-    }
-}
-
-
-class SocialNetwork {
-    private NotificationSender notification;
-
-    public SocialNetwork(NotificationSender notification) {
-        this.notification = notification;
+    @GetMapping
+    public List<User> getUsers() {
+        return users;
     }
 
-    void notifyUser() {
-        notification.sendNotification();
+
+    @PostMapping
+    public String addUser(@RequestBody User user) {
+        users.add(user);
+        return "User added!";
+    }
+
+    @PutMapping("/{id}")
+    public String updateUser(@PathVariable int id, @RequestBody User updatedUser) {
+        if (id >= 0 && id < users.size()) {
+            users.set(id, updatedUser);
+            return "User updated!";
+        }
+        return "User not found!";
+    }
+
+    @DeleteMapping("/{id}")
+    public String deleteUser(@PathVariable int id) {
+        if (id >= 0 && id < users.size()) {
+            users.remove(id);
+            return "User deleted!";
+        }
+        return "User not found!";
     }
 }
+package com.example.demo.model;
 
- class NotificationDemo {
-    public static void main(String[] args) {
-        SocialNetwork emailApp = new SocialNetwork(new EmailSender());
-        SocialNetwork smsApp = new SocialNetwork(new SmsSender());
+public class User {
+    private String name;
+    private int age;
 
-        emailApp.notifyUser();
-        smsApp.notifyUser();
+    public User() {}
+
+    public User(String name, int age) {
+        this.name = name;
+        this.age = age;
+    }
+
+    public String getName() { return name; }
+    public void setName(String name) { this.name = name; }
+
+    public int getAge() { return age; }
+    public void setAge(int age) { this.age = age; }
+}
+package com.example.demo.config;
+
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import springfox.documentation.builders.PathSelectors;
+import springfox.documentation.builders.RequestHandlerSelectors;
+import springfox.documentation.spi.DocumentationType;
+import springfox.documentation.spring.web.plugins.Docket;
+
+@Configuration
+public class SwaggerConfig {
+    @Bean
+    public Docket api() {
+        return new Docket(DocumentationType.SWAGGER_2)
+                .select()
+                .apis(RequestHandlerSelectors.basePackage("com.example.demo.controller"))
+                .paths(PathSelectors.any())
+                .build();
     }
 }
-1. მაგაითად გადახდის მეთოდები როდესაც მაღაზიაში შევდივართ არ უნდა იყოს მხოლოდ ერთი გადახდის მეთოდი ან მარტო ქეშით ან მარტო ფეიფალით, ნებისმიერ მომხმარებელზე უნდა იყოს მორგებული.
-2. კომპანიაში სადაც პროგრამისტები, დიზაინერები და მარკეტოლოგები მუშაობენ ერთმანეთის საქმიანობა არ უნდა დაევალოთ, ყველას ზუსტად უნდა ჰქონდეს თავისი ფუნქცია განსაზღვრული.
-3. სოციალურ ქსელში როდესაც ვაგზავნით შეტყობინებას ფეისბუქზე იმაილის სახით გაგზავნილი შეტყობინება ვერ იმუშავებს.
