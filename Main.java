@@ -1,66 +1,73 @@
 package com.example.demo.controller;
 
-import com.example.demo.model.User;
+import com.example.demo.model.Product;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.ArrayList;
 import java.util.List;
 
 @RestController
-@RequestMapping("/users")
-public class UserController {
-    private final List<User> users = new ArrayList<>();
+@RequestMapping("/products")
+public class ProductController {
+    private final List<Product> products = new ArrayList<>();
 
     @GetMapping
-    public List<User> getUsers() {
-        return users;
+    public List<Product> getProducts() {
+        return products;
     }
 
-
     @PostMapping
-    public String addUser(@RequestBody User user) {
-        users.add(user);
-        return "User added!";
+    public String addProduct(@RequestBody Product product) {
+        products.add(product);
+        return "Product added!";
     }
 
     @PutMapping("/{id}")
-    public String updateUser(@PathVariable int id, @RequestBody User updatedUser) {
-        if (id >= 0 && id < users.size()) {
-            users.set(id, updatedUser);
-            return "User updated!";
+    public String updateProduct(@PathVariable int id, @RequestBody Product updatedProduct) {
+        if (id >= 0 && id < products.size()) {
+            products.set(id, updatedProduct);
+            return "Product updated!";
         }
-        return "User not found!";
+        return "Product not found!";
     }
 
     @DeleteMapping("/{id}")
-    public String deleteUser(@PathVariable int id) {
-        if (id >= 0 && id < users.size()) {
-            users.remove(id);
-            return "User deleted!";
+    public String deleteProduct(@PathVariable int id) {
+        if (id >= 0 && id < products.size()) {
+            products.remove(id);
+            return "Product deleted!";
         }
-        return "User not found!";
+        return "Product not found!";
     }
-}
-package com.example.demo.model;
+}package com.example.demo.model;
 
-public class User {
+public class Product {
     private String name;
-    private int age;
+    private double price;
+    private String description;
 
-    public User() {}
+    public Product() {}
 
-    public User(String name, int age) {
+    public Product(String name, double price, String description) {
         this.name = name;
-        this.age = age;
+        this.price = price;
+        this.description = description;
     }
 
     public String getName() { return name; }
     public void setName(String name) { this.name = name; }
 
-    public int getAge() { return age; }
-    public void setAge(int age) { this.age = age; }
-}
-package com.example.demo.config;
+    public double getPrice() { return price; }
+    public void setPrice(double price) { this.price = price; }
+
+    public String getDescription() { return description; }
+    public void setDescription(String description) { this.description = description; }
+}<dependency>
+    <groupId>io.springfox</groupId>
+    <artifactId>springfox-boot-starter</artifactId>
+    <version>3.0.0</version>
+</dependency>
+        package com.example.demo.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
