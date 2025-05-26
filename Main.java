@@ -7,7 +7,7 @@ sudo systemctl start postgresql
 sudo -u postgres psql
 CREATE DATABASE ecommerce;
 
-spring.datasource.url=jdbc:postgresql://localhost:5432/ecommerce
+spring.datasource.url=jdbc:postgresql:
 spring.datasource.username=postgres
 spring.datasource.password=your_password
 spring.jpa.database-platform=org.hibernate.dialect.PostgreSQLDialect
