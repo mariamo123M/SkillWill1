@@ -1,0 +1,244 @@
+--თეიბლების შექმნა 
+
+create table users (
+    id serial primary key,
+    name varchar(256),
+    surname varchar(256),
+    username varchar(256) unique,
+    birth_date date
+);
+
+create table products (
+    id serial primary key,
+    product_name varchar(256),
+    product_price decimal(6,2),
+    product_quantity int
+);
+
+create table orders ( --orders(buyer, time)
+    id serial primary key,
+    buyer_id int,
+    order_date timestamp default now(),
+	
+    foreign key (buyer_id) references users(id)
+);
+
+create table order_items ( --orders(product, quantity)
+    order_id int,
+    product_id int,
+    quantity int,
+    paid_price decimal(6,2),
+	
+    foreign key (order_id) references orders(id),
+    foreign key (product_id) references products(id),
+	
+	primary key(order_id, product_id) 
+	/*
+	იმის მაგივრად რომ primary key იყოს ერთი მონაცემის უნიკალურობა, ორი მონაცემის უკიკალურობას ვიცავთ, 
+	რადგან ერთმა იუზერმა შეიძლება ბევრი შეკვეთა განახორციელოს და ამიტომ order_id გაგვიმეორდება,
+	მაგრამ ვერ გაგვიმეორედება ერთ შეკვეთაში ორი ერთნაირი პროდუქტი ცალ-ცალკე
+	*/
+);
+
+create table shopping_cart (
+    user_id int,
+    product_id int,
+    quantity int,
+	
+    foreign key (user_id) references users(id),
+    foreign key (product_id) references products(id),
+	
+	primary key(user_id, product_id)
+	--იგივე, იუზერს ერთი და იგივე პროდუქტი ორჯერ არ უნდა უჩანდეს
+);
+
+---------------------------------------------------------------------------------------------
+
+--მონაცემების შეყვანა
+
+insert into users (name, surname, username, birth_date) values
+('John', 'Doe', 'johndoe', '1990-05-12'),
+('Alice', 'Smith', 'alices', '1988-11-03'),
+('Bob', 'Johnson', 'bobbyj', '1995-02-20'),
+('Manual', 'User', 'manualuser', '1990-01-01'),
+('Emma', 'Brown', 'emmab', '1992-03-10'),
+('Liam', 'Wilson', 'liamw', '1994-07-21'),
+('Olivia', 'Davis', 'oliviad', '1991-12-02'),
+('Noah', 'Miller', 'noahm', '1989-09-18'),
+('Ava', 'Anderson', 'avaa', '1993-04-30'),
+('Sophia', 'Taylor', 'sophiat', '1996-01-14'),
+('James', 'Thomas', 'jamest', '1990-08-25'),
+('Isabella', 'Moore', 'isabellam', '1997-06-11');
+
+insert into products (product_name, product_price, product_quantity) values
+('Laptop', 999.99, 10),
+('Smartphone', 499.49, 20),
+('Headphones', 79.99, 50),
+('Tablet', 299.99, 15),
+('Monitor', 199.99, 25),
+('Keyboard', 49.99, 100),
+('Mouse', 29.99, 150),
+('Printer', 149.99, 10),
+('Desk Lamp', 39.99, 40),
+('Webcam', 89.99, 30),
+('Microphone', 129.99, 20);
+
+INSERT INTO orders (buyer_id) VALUES
+(1), (2), (3), (4), (5), (6), (7), (8), (1), (3), (5), (7), (2), (4), (6);
+
+
+insert into order_items (order_id, product_id, quantity, paid_price) values
+(1, 2, 2, 998.98),   
+(1, 1, 1, 999.99),
+(2, 3, 1, 79.99),
+(2, 2, 2, 499.49),
+(3, 1, 1, 999.99),
+(4, 4, 3, 29.99),
+(5, 5, 1, 149.99),
+(6, 6, 2, 39.99),
+(7, 7, 1, 89.99),
+(8, 8, 2, 129.99),
+(9, 1, 1, 999.99),
+(10, 3, 2, 79.99),
+(11, 2, 1, 499.49),
+(12, 5, 1, 149.99),
+(13, 6, 3, 39.99),
+(14, 7, 1, 89.99),
+(15, 8, 1, 129.99);
+
+insert into shopping_cart (user_id, product_id, quantity) values
+(3, 2, 1),
+(3, 3, 2);
+(1, 3, 2),
+(2, 1, 1),
+(3, 5, 1),
+(4, 6, 2),
+(5, 7, 1),
+(6, 8, 1),
+(7, 2, 1),
+(8, 4, 3),
+(1, 6, 1),
+(3, 1, 1);
+
+
+---------------------------------------------------------------------------------------------
+
+-- მსგავსებების ძიება პროდუქტებში
+select * from products where product_name ilike '%t%';
+
+-- მსგავსების ძიება კონკრეტული მომხმარებლის პროდუქტებში
+select
+    sc.quantity,
+    p.id,
+    p.product_name,
+    p.product_price,
+    u.*
+from shopping_cart as sc
+join products as p on p.id = sc.product_id
+join users as u on u.id=sc.user_id
+where u.id=3 and p.product_name ilike '%a%';
+
+-------------------------
+-- პროდუქტის ფასების რეინჯში ძებნა
+select *
+from products
+where product_price between 100 and 500;
+
+-- ყველა ის შეკვეთა რომელიც იუზერმა განახრციელა
+select 
+    oi.*,
+    u.id AS user_id,
+    u.name,
+    u.surname,
+    u.username,
+    u.birth_date
+from order_items as oi
+join orders as o on oi.order_id = o.id
+join users as u on o.buyer_id = u.id
+where o.buyer_id = 2;
+
+-- პროდუქტის ფასების რეინჯში ძებნა კონკრეტული იუზერისთვის
+select
+    sc.quantity,
+    p.id,
+    p.product_name,
+    p.product_price,
+    u.*
+from shopping_cart as sc
+join products as p on p.id = sc.product_id
+join users as u on u.id=sc.user_id
+where u.id=3 and p.product_price between 100 and 500;
+
+-------------------------
+
+-- იუზერის კალათის ნახვა
+select * from shopping_cart as sc
+join products as p on p.id = sc.product_id
+join users as u on u.id=sc.user_id
+where user_id = 3;
+
+--გაუმჯობესებული ვერსია
+select
+    sc.quantity,
+    p.id,
+    p.product_name,
+    p.product_price,
+    u.*
+from shopping_cart as sc
+join products as p on p.id = sc.product_id
+join users as u on u.id=sc.user_id
+where u.id=3;
+
+-------------------------
+
+-- კალათაში პროდუქტის ჩამატება
+insert into shopping_cart(user_id, product_id, quantity)
+values(3, 1, 1)
+on conflict (user_id, product_id)
+do update set
+    quantity = shopping_cart.quantity + excluded.quantity; --თუ მყიდველს უკვე აქვს ეს პროდუქტი ნაყიდი რაღაც რაოდენობით და კიდევ იყიდა მიუმატე წინარაოდენობას ახალი რაოდენობა 
+
+-- კალათიდან პროდუქტის წაშლა
+delete from shopping_cart where user_id = 3 and product_id = 1;
+
+-------------------------
+
+--დავამატოთ შეკვეთა
+INSERT INTO orders (buyer_id) 
+VALUES (3)
+RETURNING id; --ვაბრუნებთ აიდის რომ გაგვიადვილდეს order_items-ის აწყობა
+
+-- მაგალითად დაბრუნებული აიდი არის 16
+insert into order_items (order_id, product_id, quantity, paid_price)
+values 
+  (16, 2, 1, 499.49),
+  (16, 4, 2, 299.99);
+
+
+-- წავშალოთ მაგალითად შეკვეთა id-ით 1 ის უნდა ამოვშალოთ შეკვეთებიდანაც და შეკვეთების  ინფოდანაც 
+delete from order_items where order_id = 1;
+delete from orders where id = 1;
+
+--განვაახლოთ order_items
+set quantity = 5, paid_price = 28.99
+where order_id = 1 and product_id = 2;
+
+-------------------------
+
+--დავიანგარითოთ ერთი იუზერიგან დახარჯული თანხა
+select u.id as user_id, u.username,
+       sum(oi.paid_price * oi.quantity) as total_spent
+from users u
+join orders o on u.id = o.buyer_id
+join order_items oi on o.id = oi.order_id
+where u.id = 1
+group by u.id, u.username;
+
+---------------------------------------------------------------------------------------------
+
+მონაწილეები:
+1. მარიამ ბარამიძე
+2. ლადო ადამია
+3. გიორგი ქავთარაძე
+4. შალვა ნასყიდაშვილი
+
