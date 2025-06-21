@@ -1,72 +1,82 @@
-spring.datasource.url=jdbc:postgresql://localhost:5432/ecommerce
+spring.datasource.url=jdbc:postgresql://localhost:5432/mydb
 spring.datasource.username=postgres
 spring.datasource.password=your_password
 spring.jpa.hibernate.ddl-auto=update
-spring.jpa.database-platform=org.hibernate.dialect.PostgreSQLDialect
 spring.jpa.show-sql=true
+spring.jpa.properties.hibernate.dialect=org.hibernate.dialect.PostgreSQLDialect
 
         package com.example.demo.model;
 
 import jakarta.persistence.*;
+import java.time.LocalDate;
 
 @Entity
+@Table(name = "products")
 public class Product {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Column(nullable = false, length = 100)
     private String name;
-    private double price;
-    private int stock;
 
-    // Constructors, Getters & Setters
-    public Product() {}
+    @Column(nullable = false)
+    private Double price;
 
-    public Product(String name, double price, int stock) {
-        this.name = name;
-        this.price = price;
-        this.stock = stock;
-    }
+    @Column(name = "stock_quantity", nullable = false)
+    private Integer stockQuantity;
 
-    // getters and setters...
+    @Column(nullable = false)
+    private String category;
+
+    @Column(name = "created_at", nullable = false)
+    private LocalDate createdAt = LocalDate.now();
+
+    // Getters and Setters
 }
 
 package com.example.demo.model;
 
 import jakarta.persistence.*;
 
-@Entity(name = "users") // avoid clash with reserved SQL word
-public class User {
+@Entity
+@Table(name = "customers")
+public class Customer {
     @Id
     private String username;
 
-    private String role;
-    private double budget;
+    @Column(nullable = false, length = 100)
+    private String fullName;
 
-    // Constructors, Getters & Setters
-    public User() {}
+    @Column(nullable = false, unique = true)
+    private String email;
 
-    public User(String username, String role, double budget) {
-        this.username = username;
-        this.role = role;
-        this.budget = budget;
-    }
+    @Column(name = "birth_year", nullable = false)
+    private Integer birthYear;
 
-    // getters and setters...
+    @Column(nullable = false)
+    private String city;
+
+    @Column(nullable = false)
+    private Double balance = 1000.0;
+
+    // Getters and Setters
 }
 
-package com.example.demo.repository;
+@Query("SELECT p FROM Product p WHERE p.price > :price")
+List<Product> findByPriceGreaterThan(@Param("price") double price);
 
-import com.example.demo.model.Product;
-import org.springframework.data.jpa.repository.JpaRepository;
+@Query("SELECT p FROM Product p WHERE p.category = :category")
+List<Product> findByCategory(@Param("category") String category);
 
-public interface ProductRepository extends JpaRepository<Product, Long> {
-}
+@Query("SELECT p FROM Product p WHERE p.stockQuantity < :quantity")
+List<Product> findLowStock(@Param("quantity") int quantity);
 
-package com.example.demo.repository;
+@Query("SELECT c FROM Customer c WHERE c.city = :city")
+List<Customer> findByCity(@Param("city") String city);
 
-import com.example.demo.model.User;
-import org.springframework.data.jpa.repository.JpaRepository;
+@Query("SELECT c FROM Customer c WHERE c.balance >= :amount")
+List<Customer> findByMinBalance(@Param("amount") double amount);
 
-public interface UserRepository extends JpaRepository<User, String> {
-}
+@Query("SELECT c FROM Customer c WHERE c.birthYear < :year")
+List<Customer> findOlderThan(@Param("year") int year);
