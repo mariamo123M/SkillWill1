@@ -1,0 +1,107 @@
+}@Entity
+ public class User {
+     @Id
+     private String username;
+     private String firstName;
+     private String lastName;
+     private LocalDate birthDate;
+
+     // getters & setters
+ }
+ @Entity
+ @Table(name = "posts")
+ public class Post {
+     @Id
+     @GeneratedValue(strategy = GenerationType.IDENTITY)
+     private Long id;
+
+     private String text;
+
+     @ManyToOne
+     @JoinColumn(name = "author_username")
+     private User author;
+
+     // Getters, Setters, Constructors
+ }
+
+ @RestController
+ @RequestMapping("/posts")
+ public class PostController {
+
+     @Autowired
+     private PostRepository postRepo;
+
+     @Autowired
+     private UserRepository userRepo;
+
+     @PostMapping
+     public ResponseEntity<?> createPost(@RequestParam String username, @RequestBody String text) {
+         if (!userRepo.existsById(username)) return ResponseEntity.badRequest().body("User not found");
+         Post post = new Post(text, userRepo.findById(username).get());
+         return ResponseEntity.ok(postRepo.save(post));
+     }
+ @Entity
+ @Table(name = "comments")
+ public class Comment {
+     @Id
+     @GeneratedValue(strategy = GenerationType.IDENTITY)
+     private Long id;
+
+     private String text;
+
+     @ManyToOne
+     @JoinColumn(name = "post_id")
+     private Post post;
+
+     @ManyToOne
+     @JoinColumn(name = "author_username")
+     private User author;
+
+     // Getters, Setters, Constructors
+ }
+
+ public interface UserRepository extends JpaRepository<User, String> {}
+ public interface PostRepository extends JpaRepository<Post, Long> {
+     Page<Post> findByAuthorUsername(String username, Pageable pageable);
+ }
+ public interface CommentRepository extends JpaRepository<Comment, Long> {}
+
+ @PostMapping("/users/register")
+ public ResponseEntity<String> register(@RequestBody User user) {
+     if (userRepository.existsById(user.getUsername())) {
+         return ResponseEntity.badRequest().body("Username already exists");
+     }
+     userRepository.save(user);
+     return ResponseEntity.ok("User registered");
+ }
+ @PostMapping("/posts")
+ public ResponseEntity<?> createPost(@RequestParam String username, @RequestBody String text) {
+     Optional<User> user = userRepository.findById(username);
+     if (user.isEmpty()) return ResponseEntity.status(404).body("Invalid user");
+
+     Post post = new Post();
+     post.setText(text);
+     post.setAuthor(user.get());
+     return ResponseEntity.ok(postRepository.save(post));
+ }
+
+ @GetMapping("/posts")
+ public Page<Post> getAllPosts(@RequestParam int page, @RequestParam int size) {
+     return postRepository.findAll(PageRequest.of(page, size));
+ }
+ @GetMapping("/posts/by-user")
+ public Page<Post> getPostsByUser(@RequestParam String username, @RequestParam int page, @RequestParam int size) {
+     return postRepository.findByAuthorUsername(username, PageRequest.of(page, size));
+ }
+ @PostMapping("/comments")
+ public ResponseEntity<?> addComment(@RequestParam String username, @RequestParam Long postId, @RequestBody String text) {
+     Optional<User> user = userRepository.findById(username);
+     Optional<Post> post = postRepository.findById(postId);
+     if (user.isEmpty() || post.isEmpty()) return ResponseEntity.status(404).body("Invalid user or post");
+
+     Comment c = new Comment();
+     c.setAuthor(user.get());
+     c.setPost(post.get());
+     c.setText(text);
+     return ResponseEntity.ok(commentRepository.save(c));
+ }
