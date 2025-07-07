@@ -1,0 +1,45 @@
+@Entity
+public class Product {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+    private String name;
+    private Double price;
+}
+public interface ProductRepository extends JpaRepository<Product, Long> {
+}
+@RestController
+@RequestMapping("/api/products")
+public class ProductController {
+
+    @Autowired
+    private ProductRepository repository;
+
+    @GetMapping
+    public List<Product> getAll() {
+        return repository.findAll();
+    }
+
+    @PostMapping
+    public Product create(@RequestBody Product product) {
+        return repository.save(product);
+    }
+}
+
+spring:
+  datasource:
+    url: jdbc:h2:mem:testdb
+  h2:
+    console:
+
+      enabled: true
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+
+<dependency>
+  <groupId>org.springdoc</groupId>
+  <artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
+  <version>2.5.0</version>
+</dependency>
