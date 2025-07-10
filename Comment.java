@@ -2,21 +2,20 @@ package com.example.blog;
 
 import jakarta.persistence.*;
 import jakarta.validation.constraints.*;
-import java.util.*;
 
 @Entity
-public class Post {
+public class Comment {
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @NotBlank @Size(min=2, max=512)
+    @NotBlank @Size(min=2, max=128)
     private String text;
 
     @ManyToOne(optional = false)
-    private User author;
+    private Post post;
 
-    @OneToMany(mappedBy = "post", cascade = CascadeType.ALL)
-    private List<Comment> comments = new ArrayList<>();
+    @ManyToOne(optional = false)
+    private User author;
 
     // Getters and setters
 }

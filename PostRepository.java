@@ -1,10 +1,10 @@
-package com.example.blog.repository;
+package com.example.blogapp.repository;
 
-import com.example.blog.entity.Post;
+import com.example.blogapp.entity.Post;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface PostRepository extends JpaRepository<Post, Long> {
-    Page<Post> findAllByAuthor_Username(String username, Pageable pageable);
+    Page<Post> findByAuthor_Username(String username, Pageable pageable);
 }
