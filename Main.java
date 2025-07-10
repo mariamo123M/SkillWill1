@@ -1,47 +1,15 @@
-public class CustomRuntimeException extends RuntimeException {
-    public CustomRuntimeException(String message) {
-        super(message);
-    }
-}
-@RestController
-@RequestMapping("/api")
-public class PersonController {
+//TIP To <b>Run</b> code, press <shortcut actionId="Run"/> or
+// click the <icon src="AllIcons.Actions.Execute"/> icon in the gutter.
+public class Main {
+    public static void main(String[] args) {
+        //TIP Press <shortcut actionId="ShowIntentionActions"/> with your caret at the highlighted text
+        // to see how IntelliJ IDEA suggests fixing it.
+        System.out.printf("Hello and welcome!");
 
-    @PostMapping("/person")
-    public ResponseEntity<String> createPerson(@Valid @RequestBody Person person) {
-
-        if ("bad".equalsIgnoreCase(person.getFirstName())) {
-            throw new CustomRuntimeException("Invalid first name");
+        for (int i = 1; i <= 5; i++) {
+            //TIP Press <shortcut actionId="Debug"/> to start debugging your code. We have set one <icon src="AllIcons.Debugger.Db_set_breakpoint"/> breakpoint
+            // for you, but you can always add more by pressing <shortcut actionId="ToggleLineBreakpoint"/>.
+            System.out.println("i = " + i);
         }
-
-        return ResponseEntity.ok("Person accepted");
     }
 }
-@RestControllerAdvice
-public class GlobalExceptionHandler {
-
-    @ExceptionHandler(CustomRuntimeException.class)
-    public ResponseEntity<String> handleCustomException(CustomRuntimeException ex) {
-        return new ResponseEntity<>(ex.getClass().getSimpleName(), HttpStatus.BAD_REQUEST);
-    }
-
-}
-public class Person {
-
-    @NotNull(message = "First name must not be null")
-    private String firstName;
-
-    @NotNull(message = "Last name must not be null")
-    private String lastName;
-
-
-    public String getFirstName() { return firstName; }
-    public void setFirstName(String firstName) { this.firstName = firstName; }
-
-    public String getLastName() { return lastName; }
-    public void setLastName(String lastName) { this.lastName = lastName; }
-}
-<dependency>
-    <groupId>org.springframework.boot</groupId>
-    <artifactId>spring-boot-starter-validation</artifactId>
-</dependency>
