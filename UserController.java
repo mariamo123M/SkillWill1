@@ -1,23 +1,29 @@
-package com.example.blog.controller;
+package com.example.blogapp.controller;
 
-import com.example.blog.entity.User;
-import com.example.blog.repository.UserRepository;
-import org.springframework.beans.factory.annotation.Autowired;
+import com.example.blogapp.dto.UserDto;
+import com.example.blogapp.entity.User;
+import com.example.blogapp.repository.UserRepository;
+import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/users")
 public class UserController {
+    private final UserRepository userRepo;
 
-    @Autowired
-    private UserRepository userRepo;
+    public UserController(UserRepository userRepo) {
+        this.userRepo = userRepo;
+    }
 
     @PostMapping("/register")
-    public ResponseEntity<?> register(@RequestBody User user) {
-        if (userRepo.existsById(user.getUsername())) {
-            return ResponseEntity.badRequest().body("Username already exists");
-        }
-        return ResponseEntity.ok(userRepo.save(user));
+    public ResponseEntity<UserDto> register(@Valid @RequestBody UserDto dto) {
+        User user = new User();
+        user.setFirstName(dto.firstName());
+        user.setLastName(dto.lastName());
+        user.setUsername(dto.username());
+        user.setBirthDate(dto.birthDate());
+        userRepo.save(user);
+        return ResponseEntity.ok(dto);
     }
 }
