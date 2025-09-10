@@ -1,0 +1,26 @@
+public class ConcurrentModifier {
+    private static int value = 5;
+
+    public static void main(String[] args) throws InterruptedException {
+        // Thread 1: Multiply by 2
+        Thread multiplyThread = new Thread(() -> {
+            value *= 2;
+        });
+
+        // Thread 2: Add 10
+        Thread addThread = new Thread(() -> {
+            value += 10;
+        });
+
+        // Start multiplication thread
+        multiplyThread.start();
+        multiplyThread.join(); // Wait until multiplication is done
+
+        // Start addition thread
+        addThread.start();
+        addThread.join(); // Wait until addition is done
+
+        // Print final result in main thread
+        System.out.println("Final value: " + value);
+    }
+}
