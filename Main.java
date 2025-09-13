@@ -1,127 +1,112 @@
-@Configuration
-@EnableWebSecurity
-public class SecurityConfig {
+const mongoose = require('mongoose');
 
-    @Autowired
-    private JwtService jwtService;
-
-    @Bean
-    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
-        http.csrf().disable()
-                .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/login").permitAll()
-                        .requestMatchers("/admin").hasRole("ADMIN")
-                        .requestMatchers("/user").hasAnyRole("USER", "ADMIN")
-                        .anyRequest().authenticated()
-                )
-                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-                .addFilterBefore(new JwtFilter(jwtService), UsernamePasswordAuthenticationFilter.class);
-
-        return http.build();
+const userSchema = new mongoose.({
+    username: String,
+            password: String,
+            role: {
+        type: String,
+        enum: ['admin', 'user'],
+        default: 'user'
     }
-}
-public class User {
-    private String username;
-    private String password;
-    private String role;
+});
 
-    // Constructor, getters, setters
-}
-@Component
-public class JwtUtil {
+module.exports = mongoose.model('User', userSchema);
 
-    private final String SECRET_KEY = "secret";
+        const jwt = require('jsonwebtoken');
 
-    public String generateToken(String username, String role) {
-        return Jwts.builder()
-                .setSubject(username)
-                .claim("role", role)
-                .setIssuedAt(new Date())
-                .setExpiration(new Date(System.currentTimeMillis() + 30_000)) // 30 წამი
-                .signWith(SignatureAlgorithm.HS256, SECRET_KEY)
-                .compact();
-    }
+        module.exports = function (req, res, next) {
+        const token = req.headers.authorization?.split(' ')[1];
+        if (!token) return res.status(401).json({ message: 'Unauthorized' });
 
-    public Claims extractClaims(String token) {
-        return Jwts.parser().setSigningKey(SECRET_KEY).parseClaimsJws(token).getBody();
-    }
-}
-public class JwtFilter extends OncePerRequestFilter {
-
-    private final JwtService jwtService;
-
-    public JwtFilter(JwtService jwtService) {
-        this.jwtService = jwtService;
-    }
-
-    @Override
-    protected void doFilterInternal(HttpServletRequest request,
-                                    HttpServletResponse response,
-                                    FilterChain filterChain)
-            throws ServletException, IOException {
-
-        String authHeader = request.getHeader("Authorization");
-        if (authHeader != null && authHeader.startsWith("Bearer ")) {
-            String token = authHeader.substring(7);
-            if (jwtService.validateToken(token)) {
-                Authentication auth = jwtService.getAuthentication(token);
-                SecurityContextHolder.getContext().setAuthentication(auth);
-            }
-        }
-
-        filterChain.doFilter(request, response);
-    }
-}
-@Service
-public class JwtService {
-
-    @Autowired
-    private JwtUtil jwtUtil;
-
-    public boolean validateToken(String token) {
         try {
-            return !jwtUtil.extractClaims(token).getExpiration().before(new Date());
-        } catch (Exception e) {
-            return false;
+        const decoded = jwt.verify(token, process.env.JWT_SECRET);
+        req.user = decoded;
+        next();
+        } catch {
+        res.status(401).json({ message: 'Invalid token' });
         }
-    }
+        };
 
-    public Authentication getAuthentication(String token) {
-        Claims claims = jwtUtil.extractClaims(token);
-        String username = claims.getSubject();
-        String role = claims.get("role", String.class);
-        List<GrantedAuthority> authorities = List.of(new SimpleGrantedAuthority("ROLE_" + role));
-        return new UsernamePasswordAuthenticationToken(username, null, authorities);
-    }
-}
-@RestController
-public class UserController {
-
-    private final Map<String, User> users = Map.of(
-            "admin", new User("admin", "admin123", "ADMIN"),
-            "user", new User("user", "user123", "USER")
-    );
-
-    @Autowired
-    private JwtUtil jwtUtil;
-
-    @PostMapping("/login")
-    public ResponseEntity<?> login(@RequestBody User loginRequest) {
-        User user = users.get(loginRequest.getUsername());
-        if (user != null && user.getPassword().equals(loginRequest.getPassword())) {
-            String token = jwtUtil.generateToken(user.getUsername(), user.getRole());
-            return ResponseEntity.ok(Map.of("token", token));
+        module.exports = function (role) {
+        return function (req, res, next) {
+        if (req.user.role !== role) {
+        return res.status(403).json({ message: 'Forbidden' });
         }
-        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid credentials");
-    }
+        next();
+        };
+        };
 
-    @GetMapping("/admin")
-    public String adminEndpoint() {
-        return "Welcome, Admin!";
-    }
+        const User = require('../models/User');
+        const bcrypt = require('bcrypt');
+        const jwt = require('jsonwebtoken');
 
-    @GetMapping("/user")
-    public String userEndpoint() {
-        return "Welcome, User!";
-    }
-}
+        exports.register = async (req, res) => {
+        const { username, password, role } = req.body;
+        const hashed = await bcrypt.hash(password, 10);
+        const user = await User.create({ username, password: hashed, role });
+        res.json(user);
+        };
+
+        exports.login = async (req, res) => {
+        const { username, password } = req.body;
+        const user = await User.findOne({ username });
+        if (!user || !(await bcrypt.compare(password, user.password))) {
+        return res.status(401).json({ message: 'Invalid credentials' });
+        }
+        const token = jwt.sign({ id: user._id, role: user.role }, process.env.JWT_SECRET);
+        res.json({ token });
+        };
+
+        const User = require('../models/User');
+
+        exports.getProfile = async (req, res) => {
+        const user = await User.findById(req.user.id);
+        res.json(user);
+        };
+
+        exports.updateProfile = async (req, res) => {
+        const user = await User.findByIdAndUpdate(req.user.id, req.body, { new: true });
+        res.json(user);
+        };
+
+        exports.getAllUsers = async (req, res) => {
+        const users = await User.find();
+        res.json(users);
+        };
+
+        // authRoutes.js
+        const express = require('express');
+        const router = express.Router();
+        const { register, login } = require('../controllers/authController');
+
+        router.post('/register', register);
+        router.post('/login', login);
+
+        module.exports = router;
+
+        // userRoutes.js
+        const express = require('express');
+        const router = express.Router();
+        const auth = require('../middleware/authMiddleware');
+        const role = require('../middleware/roleMiddleware');
+        const { getProfile, updateProfile, getAllUsers } = require('../controllers/userController');
+
+        router.get('/profile', auth, getProfile);
+        router.put('/profile', auth, updateProfile);
+        router.get('/admin/users', auth, role('admin'), getAllUsers);
+
+        module.exports = router;
+
+        require('dotenv').config();
+        const express = require('express');
+        const mongoose = require('mongoose');
+        const app = express();
+
+        app.use(express.json());
+
+        mongoose.connect(process.env.MONGO_URI);
+
+        app.use('/api/auth', require('./routes/authRoutes'));
+        app.use('/api/user', require('./routes/userRoutes'));
+
+        app.listen(3000, () => console.log('Server running on port 3000'));
