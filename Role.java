@@ -1,5 +1,4 @@
-package com.example.E_Commerce.app.v1_2.model.enums;
-
+package com.ecommerceapp.model;
 
 public enum Role {
     ADMIN,

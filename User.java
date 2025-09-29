@@ -1,33 +1,39 @@
-package com.example.blog;
+package com.ecommerceapp.model;
 
 import jakarta.persistence.*;
-import jakarta.validation.constraints.*;
-import java.time.LocalDate;
-import java.util.*;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
+import lombok.Getter;
+import lombok.Setter;
+
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
+@Table(name = "users")
+@Setter
+@Getter
 public class User {
-    @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @NotBlank @Size(min=2, max=32) @Pattern(regexp = "[A-Za-z]+")
-    private String firstName;
-
-    @NotBlank @Size(min=2, max=64) @Pattern(regexp = "[A-Za-z]+")
-    private String lastName;
-
-    @NotBlank @Size(min=4, max=16) @Pattern(regexp = "[A-Za-z0-9]+")
-    @Column(unique = true)
+    @Column(unique = true, nullable = false, length = 50)
+    @NotBlank(message = "Username is required")
+    @Size(min = 3, max = 50, message = "Username must be between 3 and 50 characters")
     private String username;
 
-    @NotNull @PastOrPresent
-    private LocalDate birthDate;
+    @Column(nullable = false)
+    @NotBlank(message = "Password is required")
+    private String password;
 
-    @OneToMany(mappedBy = "author", cascade = CascadeType.ALL)
-    private List<Post> posts = new ArrayList<>();
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private Role role = Role.USER;
 
-    @OneToMany(mappedBy = "author", cascade = CascadeType.ALL)
-    private List<Comment> comments = new ArrayList<>();
+    @Column(nullable = false)
+    private boolean active = true;
 
-    // Getters and setters
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private List<UserPurchase> purchases = new ArrayList<>();
 }
